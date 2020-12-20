@@ -7,5 +7,5 @@ import DiscordChannelApiStack from "../lib/discord-channel-api-stack";
 
 dotenv.config({});
 const app = new cdk.App();
-new DiscordChannelS3Stack(app, "DiscordChannelCdkStack");
+new DiscordChannelS3Stack(app, "DiscordChannelS3Stack");
 new DiscordChannelApiStack(app, "DiscordChannelApiStack");

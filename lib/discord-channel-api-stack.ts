@@ -61,6 +61,9 @@ class DiscordChannelApiStack extends cdk.Stack {
       this,
       serviceName,
       {
+        cluster: new Cluster(this, "DiscordChannelApiStackCluster", {
+          clusterName: "DiscordChannel",
+        }),
         ...fargateResourceLimits,
         taskImageOptions: {
           image: ContainerImage.fromEcrRepository(ecr, imageName),
