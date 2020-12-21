@@ -1,9 +1,10 @@
 import * as cdk from "@aws-cdk/core";
 import * as ECR from "@aws-cdk/aws-ecr";
-import { Certificate } from "@aws-cdk/aws-certificatemanager";
-import { ContainerImage } from "@aws-cdk/aws-ecs";
+import { Cluster, ContainerImage } from "@aws-cdk/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "@aws-cdk/aws-ecs-patterns";
 import { ApplicationProtocol } from "@aws-cdk/aws-elasticloadbalancingv2";
+import { Certificate } from "@aws-cdk/aws-certificatemanager";
+import { HostedZone } from "@aws-cdk/aws-route53";
 
 class DiscordChannelApiStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string) {
@@ -74,9 +75,12 @@ class DiscordChannelApiStack extends cdk.Stack {
         serviceName,
         assignPublicIp: true,
         protocol: ApplicationProtocol.HTTPS,
-        desiredCount: 1,
         certificate,
-        domainName: domain,
+        domainName: `api.${domain}`,
+        domainZone: HostedZone.fromLookup(this, "DiscordApiDomainZone", {
+          domainName: domain,
+        }),
+        desiredCount: 1,
       }
     );
 
