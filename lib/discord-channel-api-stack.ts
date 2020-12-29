@@ -10,8 +10,6 @@ class DiscordChannelApiStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string) {
     const {
       AWS_ACCOUNT,
-      DISCORD_SERVER_ID,
-      DISCORD_CHANNEL_ID,
       DISCORD_BOT_TOKEN,
       CERTIFICATE_ARN,
       CERTIFICATE_DOMAIN,
@@ -44,8 +42,6 @@ class DiscordChannelApiStack extends cdk.Stack {
     };
 
     const environment = {
-      DISCORD_SERVER_ID: DISCORD_SERVER_ID as string,
-      DISCORD_CHANNEL_ID: DISCORD_CHANNEL_ID as string,
       DISCORD_BOT_TOKEN: DISCORD_BOT_TOKEN as string,
     };
 
