@@ -13,6 +13,7 @@ class DiscordChannelApiStack extends cdk.Stack {
       DISCORD_BOT_TOKEN,
       CERTIFICATE_ARN,
       CERTIFICATE_DOMAIN,
+      PROJECT_NAME,
     } = process.env;
 
     super(scope, id, {
@@ -24,12 +25,12 @@ class DiscordChannelApiStack extends cdk.Stack {
 
     const certificate = Certificate.fromCertificateArn(
       this,
-      "DiscordApiDomainCert",
+      `${PROJECT_NAME}ApiDomainCert`,
       CERTIFICATE_ARN as string
     );
 
-    const ecr = new ECR.Repository(this, `AcornApiImgRepo`, {
-      repositoryName: "kt-discord-channel-api",
+    const ecr = new ECR.Repository(this, `${PROJECT_NAME}ApiImgRepo`, {
+      repositoryName: `${PROJECT_NAME}-api`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -47,7 +48,7 @@ class DiscordChannelApiStack extends cdk.Stack {
 
     const domain = CERTIFICATE_DOMAIN as string;
 
-    const serviceName = "DiscordChannelApi";
+    const serviceName = `${PROJECT_NAME}Api`;
     if (!containerPort) {
       throw new Error(
         "Cannot create load-balanced Fargate Service without a value for `containerPort`"
@@ -58,8 +59,8 @@ class DiscordChannelApiStack extends cdk.Stack {
       this,
       serviceName,
       {
-        cluster: new Cluster(this, "DiscordChannelApiStackCluster", {
-          clusterName: "DiscordChannel",
+        cluster: new Cluster(this, `${PROJECT_NAME}ApiStackCluster`, {
+          clusterName: `${PROJECT_NAME}`,
         }),
         ...fargateResourceLimits,
         taskImageOptions: {
@@ -73,7 +74,7 @@ class DiscordChannelApiStack extends cdk.Stack {
         protocol: ApplicationProtocol.HTTPS,
         certificate,
         domainName: `api.${domain}`,
-        domainZone: HostedZone.fromLookup(this, "DiscordApiDomainZone", {
+        domainZone: HostedZone.fromLookup(this, `${PROJECT_NAME}ApiDomainZone`, {
           domainName: domain,
         }),
         desiredCount: 1,

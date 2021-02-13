@@ -6,20 +6,24 @@ export class DiscordChannelS3Stack extends cdk.Stack {
 
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
+    const {
+      PROJECT_NAME,
+    } = process.env;
 
-    this.websiteBucket = new S3.Bucket(this, "DiscordChannelWidgetS3Bucket", {
-      bucketName: "kt-discord-widget",
+    this.websiteBucket = new S3.Bucket(this, `${PROJECT_NAME}S3Bucket`, {
+      // bucketName: "kt-discord-widget",
+      bucketName: "kt-discord-widget-v2",
       publicReadAccess: true,
       websiteIndexDocument: "index.html",
       websiteErrorDocument: "index.html",
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    new cdk.CfnOutput(this, "DiscordChannelWidgetBucketName", {
+    new cdk.CfnOutput(this, `${PROJECT_NAME}S3BucketName`, {
       value: this.websiteBucket.bucketName,
     });
 
-    new cdk.CfnOutput(this, "DiscordChannelWidgetBucketUrl", {
+    new cdk.CfnOutput(this, `${PROJECT_NAME}S3BucketUrl`, {
       value: this.websiteBucket.bucketWebsiteUrl,
     });
   }
