@@ -2,10 +2,24 @@
 import "source-map-support/register";
 import * as dotenv from "dotenv";
 import * as cdk from "@aws-cdk/core";
-import { DiscordChannelS3Stack } from "../lib/discord-channel-s3-stack";
-import DiscordChannelApiStack from "../lib/discord-channel-api-stack";
+import { S3Stack } from "../lib/s3-stack";
+import ApiStack from "../lib/api-stack";
+import {DistributionStack} from "../lib/distribution-stack";
 
 dotenv.config({});
+
+const stackProps: cdk.StackProps = {
+    env: {
+        account: `${process.env.AWS_ACCOUNT}`,
+        region: 'us-east-1'
+    }
+}
+
 const app = new cdk.App();
-new DiscordChannelS3Stack(app, "DiscordChannelS3Stack");
-new DiscordChannelApiStack(app, "DiscordChannelApiStack");
+const { websiteBucket } = new S3Stack(app, "DiscordOverlayS3Stack", stackProps);
+const { certificate } = new ApiStack(app, "DiscordOverlayApiStack", stackProps);
+new DistributionStack(app, "DiscordOverlayDistribution", {
+    ...stackProps,
+    websiteBucket,
+    certificate
+})

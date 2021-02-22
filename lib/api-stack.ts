@@ -3,33 +3,30 @@ import * as ECR from "@aws-cdk/aws-ecr";
 import { Cluster, ContainerImage } from "@aws-cdk/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "@aws-cdk/aws-ecs-patterns";
 import { ApplicationProtocol } from "@aws-cdk/aws-elasticloadbalancingv2";
-import { Certificate } from "@aws-cdk/aws-certificatemanager";
+import {Certificate, CertificateValidation} from "@aws-cdk/aws-certificatemanager";
 import { HostedZone } from "@aws-cdk/aws-route53";
 
-class DiscordChannelApiStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string) {
+class ApiStack extends cdk.Stack {
+  readonly certificate: Certificate;
+  constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
     const {
-      AWS_ACCOUNT,
       DISCORD_BOT_TOKEN,
-      CERTIFICATE_ARN,
       CERTIFICATE_DOMAIN,
+      PROJECT_NAME,
     } = process.env;
 
-    super(scope, id, {
-      env: {
-        account: AWS_ACCOUNT as string,
-        region: "us-west-2",
-      },
-    });
+    super(scope, id, props);
 
-    const certificate = Certificate.fromCertificateArn(
-      this,
-      "DiscordApiDomainCert",
-      CERTIFICATE_ARN as string
-    );
+    this.certificate = new Certificate(this, `${PROJECT_NAME}Certificate`, {
+        domainName: `${CERTIFICATE_DOMAIN}`,
+        subjectAlternativeNames: [`discord-overlay.${CERTIFICATE_DOMAIN}`,`discord-overlay-api.${CERTIFICATE_DOMAIN}`],
+        validation: CertificateValidation.fromDns(
+HostedZone.fromLookup(this, 'DiscordOverlayZonefile', { domainName: `${CERTIFICATE_DOMAIN}`})
+        )
+    })
 
-    const ecr = new ECR.Repository(this, `AcornApiImgRepo`, {
-      repositoryName: "kt-discord-channel-api",
+    const ecr = new ECR.Repository(this, `DiscordApiImgRepo`, {
+      repositoryName: "discord-overlay-api",
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -47,7 +44,7 @@ class DiscordChannelApiStack extends cdk.Stack {
 
     const domain = CERTIFICATE_DOMAIN as string;
 
-    const serviceName = "DiscordChannelApi";
+    const serviceName = "DiscordOverlayApi";
     if (!containerPort) {
       throw new Error(
         "Cannot create load-balanced Fargate Service without a value for `containerPort`"
@@ -58,8 +55,8 @@ class DiscordChannelApiStack extends cdk.Stack {
       this,
       serviceName,
       {
-        cluster: new Cluster(this, "DiscordChannelApiStackCluster", {
-          clusterName: "DiscordChannel",
+        cluster: new Cluster(this, "DiscordOverlayCluster", {
+          clusterName: "DiscordOverlay",
         }),
         ...fargateResourceLimits,
         taskImageOptions: {
@@ -71,8 +68,8 @@ class DiscordChannelApiStack extends cdk.Stack {
         serviceName,
         assignPublicIp: true,
         protocol: ApplicationProtocol.HTTPS,
-        certificate,
-        domainName: `api.${domain}`,
+        certificate: this.certificate,
+        domainName: `discord-overlay.${domain}`,
         domainZone: HostedZone.fromLookup(this, "DiscordApiDomainZone", {
           domainName: domain,
         }),
@@ -84,4 +81,4 @@ class DiscordChannelApiStack extends cdk.Stack {
   }
 }
 
-export default DiscordChannelApiStack;
+export default ApiStack;

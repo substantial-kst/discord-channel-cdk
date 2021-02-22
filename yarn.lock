@@ -489,7 +489,7 @@
     "@aws-cdk/region-info" "1.80.0"
     constructs "^3.2.0"
 
-"@aws-cdk/aws-route53@1.80.0", "@aws-cdk/aws-route53@^1.80.0":
+"@aws-cdk/aws-route53@1.80.0":
   version "1.80.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-route53/-/aws-route53-1.80.0.tgz#a541a997ee0577fcb8778837d585adf0bda44fce"
   integrity sha512-SrmnC7TvwJyxHmQiVBR3Y0gp7/f2C+hnxnkl1hxTeMtAllQepRdqqOqQaqsj+rAwY6hmLVGgcNYYR4KhiRTldA==
