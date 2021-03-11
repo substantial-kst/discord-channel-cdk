@@ -4,10 +4,15 @@ import {Bucket} from "@aws-cdk/aws-s3";
 import {Certificate} from "@aws-cdk/aws-certificatemanager";
 
 export class DistributionStack extends cdk.Stack {
-
-    constructor(scope: cdk.Construct, id: string, props: cdk.StackProps & { websiteBucket: Bucket; certificate: Certificate}) {
+    constructor(scope: cdk.Construct, id: string, props: cdk.StackProps & {
+        websiteBucket: Bucket;
+        certificate: Certificate;
+    }) {
         super(scope, id, props);
-
+        const {
+            CERTIFICATE_DOMAIN,
+          } = process.env;   
+    
         new CloudFront.CloudFrontWebDistribution(this, 'DiscordOverlayDistribution',       {
                 originConfigs: [
                     {
@@ -29,7 +34,7 @@ export class DistributionStack extends cdk.Stack {
                 viewerProtocolPolicy: CloudFront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 viewerCertificate: CloudFront.ViewerCertificate.fromAcmCertificate(
                     props.certificate, {
-                        aliases: [`discord-overlay.${process.env.CERTIFICATE_DOMAIN}`]
+                        aliases: [`discord-overlay.${CERTIFICATE_DOMAIN}`]
                     }
                 ),
             }

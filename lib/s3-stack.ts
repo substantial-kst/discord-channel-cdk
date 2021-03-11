@@ -8,9 +8,10 @@ export class S3Stack extends cdk.Stack {
     super(scope, id, props);
 
     const { CERTIFICATE_DOMAIN } = process.env;
-    const bucketSuffix = `-${CERTIFICATE_DOMAIN ? CERTIFICATE_DOMAIN.split('.')[0].toLowerCase() : ''}`;
+    const suffix = CERTIFICATE_DOMAIN?.split('.')[0].toLowerCase();
+    const bucketSuffix = `-${CERTIFICATE_DOMAIN ? suffix : ''}`;
     this.websiteBucket = new S3.Bucket(this, "S3Bucket", {
-      bucketName: `discord-overlay-${bucketSuffix}`,
+      bucketName: `discord-overlay${bucketSuffix}`,
       publicReadAccess: true,
       websiteIndexDocument: "index.html",
       websiteErrorDocument: "index.html",

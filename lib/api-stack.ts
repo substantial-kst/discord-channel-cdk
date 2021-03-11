@@ -1,34 +1,20 @@
 import * as cdk from "@aws-cdk/core";
-import * as ECR from "@aws-cdk/aws-ecr";
 import { Cluster, ContainerImage } from "@aws-cdk/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "@aws-cdk/aws-ecs-patterns";
 import { ApplicationProtocol } from "@aws-cdk/aws-elasticloadbalancingv2";
-import {Certificate, CertificateValidation} from "@aws-cdk/aws-certificatemanager";
+import {Certificate} from "@aws-cdk/aws-certificatemanager";
 import { HostedZone } from "@aws-cdk/aws-route53";
+import { Repository } from "@aws-cdk/aws-ecr";
 
 class ApiStack extends cdk.Stack {
   readonly certificate: Certificate;
-  constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props: cdk.StackProps & { certificate: Certificate; repository: Repository}) {
     const {
       DISCORD_BOT_TOKEN,
       CERTIFICATE_DOMAIN,
-      PROJECT_NAME,
     } = process.env;
 
     super(scope, id, props);
-
-    this.certificate = new Certificate(this, `${PROJECT_NAME}Certificate`, {
-        domainName: `${CERTIFICATE_DOMAIN}`,
-        subjectAlternativeNames: [`discord-overlay.${CERTIFICATE_DOMAIN}`,`discord-overlay-api.${CERTIFICATE_DOMAIN}`],
-        validation: CertificateValidation.fromDns(
-HostedZone.fromLookup(this, 'DiscordOverlayZonefile', { domainName: `${CERTIFICATE_DOMAIN}`})
-        )
-    })
-
-    const ecr = new ECR.Repository(this, `DiscordApiImgRepo`, {
-      repositoryName: "discord-overlay-api",
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
 
     // Configuration
     const imageName = "latest";
@@ -60,7 +46,7 @@ HostedZone.fromLookup(this, 'DiscordOverlayZonefile', { domainName: `${CERTIFICA
         }),
         ...fargateResourceLimits,
         taskImageOptions: {
-          image: ContainerImage.fromEcrRepository(ecr, imageName),
+          image: ContainerImage.fromEcrRepository(props.repository, imageName),
           containerPort,
           containerName: `${serviceName}Container`,
           environment,
@@ -69,7 +55,7 @@ HostedZone.fromLookup(this, 'DiscordOverlayZonefile', { domainName: `${CERTIFICA
         assignPublicIp: true,
         protocol: ApplicationProtocol.HTTPS,
         certificate: this.certificate,
-        domainName: `discord-overlay.${domain}`,
+        domainName: `discord-overlay-api.${domain}`,
         domainZone: HostedZone.fromLookup(this, "DiscordApiDomainZone", {
           domainName: domain,
         }),
